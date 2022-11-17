@@ -10,7 +10,7 @@ public partial class Tank : MonoBehaviour
     protected Animator animator;
     protected float smallestGrid = 0.25f;
     protected float invincibleTime;
-
+    public Side side = Side.Null;
     public int Health               // The amount of health each tank
     {
         set
@@ -46,4 +46,5 @@ public partial class Tank : MonoBehaviour
     {
         rigidbody2d.isKinematic = true;
     }
+    public enum Side { Null,Enemy,Player }
 }

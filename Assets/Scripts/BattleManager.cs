@@ -4,21 +4,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
+using TMPro;
 public class BattleManager : MonoBehaviour
 {
+    public Transform[] enemySpawnPos;
+    public Transform[] playerSpawnPos;
     [HideInInspector] public int liveEnemy;
+    [HideInInspector] public int livePlayer;
     [HideInInspector] public float bulletTime;
     OurTank[] ourTank = new OurTank[2];
-    Image gameoverImage;
+    [SerializeField] TextMeshProUGUI resultGame;
     const int totalEnemy = 20;
     int[] enemyTanks = { 5, 5, 5, 5 };
     int[] enemyQueue = new int[totalEnemy];
 
     int prizePerBattle = 3;
     bool[] prizeQueue = new bool[totalEnemy];
-    int enemyBorn;
+    [HideInInspector] int enemyBorn;
     GameManager gm;
+    [HideInInspector] public enum BattleState { Null,Running,End}
+    [HideInInspector] public BattleState battleState;
     private static BattleManager instance;
 
     public static BattleManager GetInstance()
@@ -35,21 +40,20 @@ public class BattleManager : MonoBehaviour
         gm = GameManager.GetInstance();
         ObjectPool.GetInstance().Clear();
         ourTank[0] = GameObject.Find("player1").GetComponent<OurTank>();
-        //ourTank[1] = GameObject.Find("player2").GetComponent<OurTank>();
-        gameoverImage = GameObject.Find("ImageGameOver").GetComponent<Image>();
     }
 
     // Start is called before the first frame update
     void Start()
     {
         print("New battle");
-        gameoverImage.enabled = false;
+        battleState = BattleState.Running;
+        resultGame.text = "";
         enemyBorn = 0;
         FormEnemyQueue();
         SpawnEnemyTank();
         for (int i = 0; i < GameManager.GetInstance().player; i++)
         {
-            if (gm.playerLife[i] > 0)
+            if (gm.playerLife > 0)
                 ourTank[i].Born();
             else
                 ourTank[i].gameObject.SetActive(false);
@@ -63,17 +67,25 @@ public class BattleManager : MonoBehaviour
         bulletTime -= Time.deltaTime;
     }
 
-    public IEnumerator GameOver()
+    public IEnumerator Loss()
     {
+        battleState = BattleState.End;
         print("Game over!");
-        gameoverImage.enabled = true;
+        resultGame.text = "Thua";
         ourTank[0].m_Dead = true;
-        //ourTank[1].m_Dead = true;
         gm.battleResult = GameManager.BattleResult.LOSE;
         yield return new WaitForSeconds(1.5f);
         SceneManager.LoadScene("ScoreScene");
     }
-
+    public IEnumerator Win()
+    {
+        battleState = BattleState.End;
+        print("Win!");
+        resultGame.text = "Thắng";
+        ourTank[0].m_Dead = true;
+        gm.battleResult = GameManager.BattleResult.LOSE;
+        yield return new WaitForSeconds(1.5f);
+    }
     public void SpawnEnemyTank()
     {
         while (liveEnemy < 4 && enemyBorn < totalEnemy)
@@ -90,8 +102,6 @@ public class BattleManager : MonoBehaviour
         {
             gm.battleResult = GameManager.BattleResult.WIN;
             gm.playerLevel[0] = ourTank[0].level;
-            //gm.playerLevel[1] = ourTank[1].level;
-            SceneManager.LoadScene("ScoreScene");
         }
     }
 
@@ -116,12 +126,12 @@ public class BattleManager : MonoBehaviour
 
     public void OurTankDie(int player)
     {
-        gm.playerLife[player - 1]--;
-        if (gm.playerLife[0] == 0 && gm.playerLife[1] == 0)
+        gm.playerLife--;
+        if (gm.playerLife == 0 )
         {
-            StartCoroutine(GameOver());
+            StartCoroutine(Loss());
         }
-        else if (gm.playerLife[player - 1] > 0)
+        else if (gm.playerLife > 0)
         {
             ourTank[player - 1].Born();
             ourTank[player - 1].level = 1;

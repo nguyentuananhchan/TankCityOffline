@@ -34,25 +34,30 @@ public class EnemyTank : Tank
     // Start is called before the first frame update
     void Start()
     {
+        side = Side.Enemy;
         moveDirection = Vector2.down;
         m_ChargeTime = 1.7f;
         bulletTime = 0;
         directionChangeTimer = 0;
         directionChangeInteval = 2;
         mapName = GameManager.GetInstance().currentMapName;
-        //Debug.Log("mapName" + mapName);
         map = GameObject.Find(mapName).GetComponent<Tilemap>();
-        //Debug.Log(" GameManager.GetInstance().currentMap" + GameManager.GetInstance().currentMap);
-       // map = GameManager.GetInstance().currentMap;
+
     }
 
     public IEnumerator Born(int type, int number, bool prize)
     {
-        Vector2[] enemySpawnPoint = { new Vector2(-3f, 3f), new Vector2(0f, 3f), new Vector2(3f, 3f) };
-        Vector2 spawnPoint = enemySpawnPoint[number%3];
+        var bm = BattleManager.GetInstance();
+        Transform pos0 = bm.enemySpawnPos[0];
+        Transform pos1 = bm.enemySpawnPos[1];
+        Transform pos2 = bm.enemySpawnPos[2];
+        Transform pos3 = bm.enemySpawnPos[3];
+        Vector2[] enemySpawnPoint = { new Vector2(pos0.position.x, pos0.position.y), new Vector2(pos1.position.x, pos1.position.y), new Vector2(pos2.position.x, pos2.position.y), new Vector2(pos3.position.x, pos3.position.y) };
+        Vector2 spawnPoint = enemySpawnPoint[number];
         gameObject.SetActive(false);
 
         bool collide;
+        /*
         while(true)
         {
             collide = false;
@@ -67,14 +72,19 @@ public class EnemyTank : Tank
             else
                 break;
         }
-
+        */
+        type = 1;
         gameObject.SetActive(true);
         Type = type;
         m_PlayerNumber = -number;
         hasPrize = prize;
-        animator.SetInteger("type", type + 1);
+        //animator.SetInteger("type", type + 1);
+        animator.SetInteger("type", type);
         animator.SetBool("prize", prize);
+        //int index = BattleManager.GetInstance().enemyBorn;
+        // transform.position = BattleManager.GetInstance().enemySpawnPos[index];
         transform.position = spawnPoint;
+        //BattleManager.GetInstance().enemyBorn += 1;
         speed = 0;
         invincibleTime = 1f;
         yield return new WaitForSeconds(1f);
@@ -127,14 +137,13 @@ public class EnemyTank : Tank
         {
             TileBase tileLeft = map.GetTile(Vector3Int.FloorToInt(frontLeft.position / smallestGrid));
             TileBase tileRight = map.GetTile(Vector3Int.FloorToInt(frontRight.position / smallestGrid));
-            if (tileLeft.name == "steelwall" || tileLeft.name == "river" || tileRight.name == "steelwall" || tileRight.name == "river")
+            if (tileLeft.name == "steelwall" || tileLeft.name == "river" || tileRight.name == "steelwall" || tileRight.name == "river" || tileRight.name == "border")
             {
                 SelectDirection(true);
             }
             //when half brick,it'd be better to change direction
             else if (tileLeft.name == "brickwall" && tileRight.name == "empty" || tileLeft.name == "empty" && tileRight.name == "brickwall")
             {
-                //print("collide half brick");
                 SelectDirection(false);
             }
         }
@@ -144,15 +153,26 @@ public class EnemyTank : Tank
             Vector2 line = collision.collider.transform.position - transform.position;
             line.Normalize();
             float dotproduct = Vector2.Dot(moveDirection, line);
-            //print("Tank " + m_PlayerNumber + " collides. Dot product " + dotproduct + " Move direction "+ moveDirection);
             if (dotproduct > speed * 0.5)     //the knocker should change its direction
             {
                 SelectDirection(true);
-               // print("change direction");
             }
             else  //the knocked should keep its velocity
             {
-               // print("keep direction");
+                rigidbody2d.velocity = moveDirection * speed;
+            }
+        }
+        if (collision.collider.name == "brickwallEnemy")
+        {
+            Vector2 line = collision.collider.transform.position - transform.position;
+            line.Normalize();
+            float dotproduct = Vector2.Dot(moveDirection, line);
+            if (dotproduct > speed * 0.5)     //the knocker should change its direction
+            {
+                SelectDirection(true);
+            }
+            else  //the knocked should keep its velocity
+            {
                 rigidbody2d.velocity = moveDirection * speed;
             }
         }
@@ -271,8 +291,11 @@ public class EnemyTank : Tank
         yield return new WaitForSeconds(0.7f);
         gameManager.kill[shooter - 1, type]++;
         BattleManager.GetInstance().liveEnemy--;
+        if (BattleManager.GetInstance().liveEnemy <= 0) {
+            StartCoroutine(BattleManager.GetInstance().Win());
+        }
         ObjectPool.GetInstance().RecycleObj(gameObject);
-        BattleManager.GetInstance().SpawnEnemyTank();
+        //BattleManager.GetInstance().SpawnEnemyTank();
     }
 
 

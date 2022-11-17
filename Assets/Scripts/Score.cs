@@ -16,6 +16,7 @@ public class Score : MonoBehaviour
 
     public void ShowScore()
     {
+        /*
         print("show score");
         int[,] kill;
         kill = GameManager.GetInstance().kill;
@@ -95,27 +96,13 @@ public class Score : MonoBehaviour
             bonusTitle.enabled = false;
             bonus.enabled = false;
         }
+        */
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetButtonDown("Submit"))
-        {
-            if (gm.battleResult == GameManager.BattleResult.WIN)
-            {
-                gm.NextStage();
 
-            }
-            else
-            {
-                gm.playerLife[0] = 3;
-                if(gm.player == 2)
-                    gm.playerLife[1] = 3;
-            }
-            print("Load new battle");
-            SceneManager.LoadScene("BattleScene");
-        }
     }
 
 }

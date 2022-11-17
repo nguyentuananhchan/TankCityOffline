@@ -20,5 +20,12 @@ public partial class Tank : MonoBehaviour
         shell.shooter = m_PlayerNumber;
         shell.damage = damage;
 
+        if (this.side == Side.Enemy) {
+            shell.side = Shell.Side.Enemy;
+        }
+        if (this.side == Side.Player)
+        {
+            shell.side = Shell.Side.Player;
+        }
     }
 }

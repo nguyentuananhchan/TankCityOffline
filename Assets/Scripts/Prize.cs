@@ -38,7 +38,7 @@ public class Prize : MonoBehaviour
             }
             else if(type == Type.life)
             {
-                GameManager.GetInstance().playerLife[myTank.m_PlayerNumber - 1]++;
+                GameManager.GetInstance().playerLife++;
             }
             else if(type == Type.helmet)
             {

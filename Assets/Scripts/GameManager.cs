@@ -9,9 +9,9 @@ public class GameManager : MonoBehaviour
     public string currentMapName;
     public Tilemap currentMap;
     [HideInInspector] public int[,] kill = new int[2, 4];
-    [HideInInspector] public int[] playerLife = { 3, 3 };
+    [HideInInspector] public int playerLife = 1;
     [HideInInspector] public int[] playerLevel = { 1, 1 };
-    public enum BattleResult { WIN, LOSE};
+    public enum BattleResult {WIN, LOSE};
     [HideInInspector] public BattleResult battleResult;
 
     int MaxStage = 4;

@@ -11,7 +11,7 @@ public class Shell : MonoBehaviour
     public Transform TopLeft;
     public Transform TopRight;
     public int damage;
-
+    public Side side = Side.Null;
     Animator animator;
 
     private void Awake()
@@ -22,6 +22,8 @@ public class Shell : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        var bm = BattleManager.GetInstance();
+        if (bm.battleState != BattleManager.BattleState.Running) return;
         //print("Shell hit " + other.name);
         bool explode = false;
         if (other.tag == "Tilemap")
@@ -32,6 +34,30 @@ public class Shell : MonoBehaviour
             Vector3Int roundPosition = Vector3Int.FloorToInt(new Vector3(TopLeft.position.x / cellSize.x, TopLeft.position.y / cellSize.y, 0));
             TileBase tile = map.GetTile(roundPosition);
 
+            // head quanter brickwall
+            if (tile.name == "brickwallEnemy" && side == Side.Enemy)
+            {
+                explode = true;
+            }
+            if (tile.name == "brickwallPlayer" && side == Side.Player)
+            {
+                explode = true;
+            }
+            if (tile.name == "brickwallEnemy" && side == Side.Player)
+            {
+                explode = true;
+                map.SetTile(roundPosition, emptyTile);
+            }
+            if (tile.name == "brickwallPlayer" && side == Side.Enemy)
+            {
+                explode = true;
+                map.SetTile(roundPosition, emptyTile);
+            }
+            // end head quanter brickwall
+            if (tile.name == "border")
+            {
+                explode = true;
+            }
             if (tile.name == "brickwall")
             {
                 map.SetTile(roundPosition, emptyTile);
@@ -58,7 +84,7 @@ public class Shell : MonoBehaviour
                 explode = true;
             }
         }
-        else if (other.name == "EnemyTank" || other.name == "player1" || other.name == "player2")
+        else if (other.name == "EnemyTank" || other.tag == "Player" )
         {
             Tank targetTank = other.GetComponent<Tank>();
             if (shooter * targetTank.m_PlayerNumber < 0)
@@ -83,4 +109,5 @@ public class Shell : MonoBehaviour
         yield return new WaitForSeconds(0.35f);
         ObjectPool.GetInstance().RecycleObj(gameObject);
     }
+    public enum Side { Null, Enemy, Player }
 }

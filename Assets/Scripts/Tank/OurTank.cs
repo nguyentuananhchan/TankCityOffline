@@ -37,7 +37,11 @@ public partial class OurTank : Tank
     {
         print("Born in our tank");
         Vector2[] ourSpawnPoint = { new Vector2(-1f, -3f), new Vector2(1f, -3f) };
-        transform.position = ourSpawnPoint[m_PlayerNumber - 1];
+        //transform.position = ourSpawnPoint[m_PlayerNumber - 1];
+        
+        var bm = BattleManager.GetInstance();
+        Debug.Log("m_PlayerNumber:" + m_PlayerNumber);
+        transform.position = bm.playerSpawnPos[m_PlayerNumber - 1].position;
         m_Dead = false;
         moveDirection = Vector2.up;
         gameObject.SetActive(true);
@@ -50,6 +54,7 @@ public partial class OurTank : Tank
     // Start is called before the first frame update
     void Start()
     {
+        side = Side.Player;
         if (gameObject.name == "player1")
             m_PlayerNumber = 1;
         else
