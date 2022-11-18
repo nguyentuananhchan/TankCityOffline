@@ -21,7 +21,7 @@ public class Prize : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.name == "player1" || collision.name == "player2")
+        if (collision.tag =="Player")
         {
             OurTank myTank = collision.GetComponent<OurTank>();
             if (type == Type.bomb)

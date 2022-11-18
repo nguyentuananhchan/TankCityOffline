@@ -54,7 +54,7 @@ public class BattleManager : MonoBehaviour
         for (int i = 0; i < GameManager.GetInstance().player; i++)
         {
             if (gm.playerLife > 0)
-                ourTank[i].Born();
+                ourTank[i].Born(true);
             else
                 ourTank[i].gameObject.SetActive(false);
 
@@ -101,7 +101,6 @@ public class BattleManager : MonoBehaviour
         if (liveEnemy == 0 && enemyBorn == totalEnemy)
         {
             gm.battleResult = GameManager.BattleResult.WIN;
-            gm.playerLevel[0] = ourTank[0].level;
         }
     }
 
@@ -133,8 +132,9 @@ public class BattleManager : MonoBehaviour
         }
         else if (gm.playerLife > 0)
         {
-            ourTank[player - 1].Born();
-            ourTank[player - 1].level = 1;
+            ourTank[player - 1].level = 0;
+            ourTank[player - 1].Born(true);
+            
         }
     }
 

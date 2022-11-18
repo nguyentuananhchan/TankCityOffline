@@ -7,6 +7,7 @@ using UnityEngine.Tilemaps;
 public class Shell : MonoBehaviour
 {
     [HideInInspector] public int shooter;
+    [HideInInspector] public Tank tank;
     public Tile emptyTile;
     public Transform TopLeft;
     public Transform TopRight;
@@ -34,10 +35,13 @@ public class Shell : MonoBehaviour
             Vector3Int roundPosition = Vector3Int.FloorToInt(new Vector3(TopLeft.position.x / cellSize.x, TopLeft.position.y / cellSize.y, 0));
             TileBase tile = map.GetTile(roundPosition);
 
+            if (tile == null) return;
+            if (tank == null) return;
             // head quanter brickwall
             if (tile.name == "brickwallEnemy" && side == Side.Enemy)
             {
                 explode = true;
+                tank.GetComponent<EnemyTank>().SelectDirection(true);
             }
             if (tile.name == "brickwallPlayer" && side == Side.Player)
             {
@@ -57,6 +61,10 @@ public class Shell : MonoBehaviour
             if (tile.name == "border")
             {
                 explode = true;
+                if (tank.side == Tank.Side.Enemy)
+                {
+                    tank.GetComponent<EnemyTank>().SelectDirection(true);
+                }
             }
             if (tile.name == "brickwall")
             {
@@ -67,6 +75,9 @@ public class Shell : MonoBehaviour
             {
                 if (damage == 2)
                     map.SetTile(roundPosition, emptyTile);
+                if (tank.side == Tank.Side.Enemy) {
+                    tank.GetComponent<EnemyTank>().SelectDirection(true);
+                }
                 explode = true;
             }
             roundPosition = Vector3Int.FloorToInt(new Vector3(TopRight.position.x / cellSize.x, TopRight.position.y / cellSize.y, 0));
@@ -86,6 +97,7 @@ public class Shell : MonoBehaviour
         }
         else if (other.name == "EnemyTank" || other.tag == "Player" )
         {
+            
             Tank targetTank = other.GetComponent<Tank>();
             if (shooter * targetTank.m_PlayerNumber < 0)
                 explode = true;

@@ -11,15 +11,17 @@ public partial class OurTank : Tank
     private Animator shieldAnimator;
     private Vector3 position0;      //when tank collides other tank, it restores to the original position
     private float chargeRate;
-
+    string mapName;
+    private bool hasPrize;
+    [SerializeField] GameObject prizeObj;
     public int level
     {
         set
         {
-            if (value > 4)
-                value = 4;
-            float[] chargeRates = { 1f, 0.9f, 0.8f, 0.7f, 0.6f };
-            int[] healths = { 0, 1, 1, 1, 2 };
+            if (value > 3)
+                value = 3;
+            float[] chargeRates = { 1f, 0.9f, 0.8f, 0.7f};
+            int[] healths = { 1, 1, 1, 1};
             m_level = value;
             chargeRate = chargeRates[value];
             Health = healths[value];
@@ -33,24 +35,35 @@ public partial class OurTank : Tank
     }
     private int m_level;
 
-    public void Born()
+    public void Born(bool prize)
     {
         print("Born in our tank");
         Vector2[] ourSpawnPoint = { new Vector2(-1f, -3f), new Vector2(1f, -3f) };
-        //transform.position = ourSpawnPoint[m_PlayerNumber - 1];
         
         var bm = BattleManager.GetInstance();
         Debug.Log("m_PlayerNumber:" + m_PlayerNumber);
+        hasPrize = prize;
+        
+        if (prize) prizeObj.SetActive(true);
+        else prizeObj.SetActive(false);
+
         transform.position = bm.playerSpawnPos[m_PlayerNumber - 1].position;
         m_Dead = false;
         moveDirection = Vector2.up;
         gameObject.SetActive(true);
-        level = gameManager.playerLevel[m_PlayerNumber - 1];
+        //level = gameManager.playerLevel[m_PlayerNumber - 1];
+        LevelTransform(level);
         speed = 0.7f;
         invincibleTime = 3f;
         shieldAnimator.SetBool("invincible", true); 
     }
-
+    private void LevelTransform(int lv) {
+        Debug.Log("hit player, lv:" + lv);
+        level = lv;
+        m_level = lv;
+        animator.SetInteger("level", lv);
+        animator.Play("Player" + m_PlayerNumber + "Moving" + lv);
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -63,6 +76,7 @@ public partial class OurTank : Tank
         m_HorizontalAxisName = "Horizontal" + m_PlayerNumber;
         m_FireButton = "Fire" + m_PlayerNumber;
         shieldAnimator = shield.GetComponent<Animator>();
+        level = 3;
     }
 
 
@@ -89,7 +103,7 @@ public partial class OurTank : Tank
             {
                 print("Level " + level);
 
-                Fire(level < 4 ? 1 : 2);
+                Fire(level < 3 ? 1 : 2);
 
                 RaycastHit2D hit = Physics2D.Raycast(fireTransform.position, moveDirection, 7f, LayerMask.GetMask("Tank"));
                distance = hit.distance;
@@ -102,6 +116,7 @@ public partial class OurTank : Tank
         }
         m_CurrentChargeTime -= Time.deltaTime;
 
+        prizeObj.transform.position = this.transform.position;
     }
 
     private void FixedUpdate()
@@ -165,33 +180,13 @@ public partial class OurTank : Tank
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        //if (collision.collider.name == "EnemyTank")
-        //{
-        //    print("Enter collision");
-        //    //print("position1 " + transform.position);
-        //    //print("position0 " + position0);
-        //    Vector2 line = collision.collider.transform.position - transform.position;
-        //    line.Normalize();
-        //    float dotproduct = Vector2.Dot(moveDirection, line);
-        //    print("Tank " + m_PlayerNumber + " collides. Dot product " + dotproduct + " Move direction " + moveDirection);
-        //    if (dotproduct > speed * 0.5)     //the knocker should change its direction
-        //        rigidbody2d.position = position0;
-        //    else  //the knocked should keep its velocity
-        //        rigidbody2d.velocity = moveDirection * speed;
-        //}
+
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
         if (collision.collider.name == "EnemyTank")
         {
-            //print("Exit collision");
-            //Vector2 line = collision.collider.transform.position - transform.position;
-            //line.Normalize();
-            //float dotproduct = Vector2.Dot(moveDirection, line);
-            //print("Tank " + m_PlayerNumber + " collides. Dot product " + dotproduct + " Move direction " + moveDirection);
-            //if (dotproduct > speed * 0.5)     //the knocker should change its direction
-            //    rigidbody2d.position = position0;
             rigidbody2d.velocity = new Vector2(0,0);
         }
     }
@@ -203,10 +198,23 @@ public partial class OurTank : Tank
             Shell shell = collision.GetComponent<Shell>();
             if (shell.shooter < 0)
             {
-                if (level == 4)
-                    level = 1;
-                else
+                if (level > 0)
+                {
+                    level--;
+                    LevelTransform(level);
+                }
+                if (level <= 0)
+                {
                     Health--;
+
+                }
+                if (hasPrize)
+                {
+                    hasPrize = false;
+                    GameObject prizeInstance = ObjectPool.GetInstance().GetObject("Prize");
+                    Prize prize = prizeInstance.GetComponent<Prize>();
+                    prizeObj.SetActive(false);
+                }
                 // If the current health is at or below zero and it has not yet been registered, call OnDeath.
                 if (Health <= 0 && !m_Dead)
                 {
@@ -225,6 +233,7 @@ public partial class OurTank : Tank
 
         gameObject.SetActive(false);
         BattleManager.GetInstance().OurTankDie(m_PlayerNumber);
+
     }
 
     public void OnInvinciblePrize()

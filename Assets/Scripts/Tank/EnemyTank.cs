@@ -13,7 +13,8 @@ public class EnemyTank : Tank
     private float directionChangeTimer;
     private bool hasPrize;
 
-    private readonly int[] healthArray = { 1, 2, 2, 3 };
+    private readonly int[] healthArray = { 1, 1, 1, 1 };
+    float[] chargeRates = { 1f, 0.9f, 0.8f, 0.7f};
     private readonly float[] speedArray = { 0.5f, 0.5f, 1f, 0.5f };
     string mapName;
     public int Type
@@ -36,7 +37,7 @@ public class EnemyTank : Tank
     {
         side = Side.Enemy;
         moveDirection = Vector2.down;
-        m_ChargeTime = 1.7f;
+        m_ChargeTime = chargeRates[type];
         bulletTime = 0;
         directionChangeTimer = 0;
         directionChangeInteval = 2;
@@ -57,22 +58,6 @@ public class EnemyTank : Tank
         gameObject.SetActive(false);
 
         bool collide;
-        /*
-        while(true)
-        {
-            collide = false;
-            Tank[] tanks = FindObjectsOfType<Tank>();
-            foreach (Tank tank in tanks)
-            {
-                if (Vector2.Distance(spawnPoint, tank.transform.position) < 0.5f)
-                    collide = true;
-            }
-            if (collide)
-                yield return new WaitForSeconds(1f);
-            else
-                break;
-        }
-        */
         type = 1;
         gameObject.SetActive(true);
         Type = type;
@@ -90,11 +75,10 @@ public class EnemyTank : Tank
         yield return new WaitForSeconds(1f);
         speed = speedArray[type];
     }
-
-
     // Update is called once per frame
     void Update()
     {
+        if (BattleManager.GetInstance().battleState != BattleManager.BattleState.Running) return;
         if (m_Dead)
             return;
         invincibleTime -= Time.deltaTime;
@@ -110,6 +94,7 @@ public class EnemyTank : Tank
 
     private void FixedUpdate()
     {
+        if (BattleManager.GetInstance().battleState != BattleManager.BattleState.Running) return;
         if (m_Dead)
             return;
         rigidbody2d.position += moveDirection * speed * Time.fixedDeltaTime;
@@ -179,7 +164,7 @@ public class EnemyTank : Tank
     }
 
 
-    private void SelectDirection(bool mustChange)
+    public void SelectDirection(bool mustChange)
     {
         float[] directChance = { 0.1f, 0.45f, 0.2f, 0.2f };
 
