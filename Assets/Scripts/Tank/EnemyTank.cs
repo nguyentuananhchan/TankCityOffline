@@ -6,13 +6,14 @@ using Assets.Scripts;
 
 public class EnemyTank : Tank
 {
+    public GameObject shield;
     public Transform frontLeft, frontRight;
     private Tilemap map;
     [HideInInspector] public static float bulletTime;
     private float directionChangeInteval;
     private float directionChangeTimer;
     private bool hasPrize;
-
+    private Animator shieldAnimator;
     private readonly int[] healthArray = { 1, 1, 1, 1 };
     float[] chargeRates = { 1f, 0.9f, 0.8f, 0.7f};
     private readonly float[] speedArray = { 0.5f, 0.5f, 1f, 0.5f };
@@ -35,6 +36,7 @@ public class EnemyTank : Tank
     // Start is called before the first frame update
     void Start()
     {
+        shieldAnimator = shield.GetComponent<Animator>();
         side = Side.Enemy;
         moveDirection = Vector2.down;
         m_ChargeTime = chargeRates[type];
@@ -74,6 +76,14 @@ public class EnemyTank : Tank
         invincibleTime = 1f;
         yield return new WaitForSeconds(1f);
         speed = speedArray[type];
+    }
+    public void OnInvinciblePrize()
+    {
+        invincibleTime = 6f;
+        shieldAnimator.SetBool("invincible", true);
+    }
+    public void UpdateType(int typeN) {
+        animator.SetInteger("type", typeN);
     }
     // Update is called once per frame
     void Update()

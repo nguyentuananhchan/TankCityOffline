@@ -23,6 +23,11 @@ public class Shell : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (other.name == "EnemyTank" || other.tag == "Player") {
+            Tank me = other.GetComponent<Tank>();
+            if (me.side == Tank.Side.Enemy && side == Side.Enemy) return;
+            if (me.side == Tank.Side.Player && side == Side.Player) return;
+        }
         var bm = BattleManager.GetInstance();
         if (bm.battleState != BattleManager.BattleState.Running) return;
         //print("Shell hit " + other.name);

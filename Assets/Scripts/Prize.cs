@@ -3,9 +3,9 @@
 
 public class Prize : MonoBehaviour
 {
-    public enum Type {star, life, bomb, timer, helmet, shovel };
+    public enum Type {star, life, helmet};
     public Type type;
-    public Sprite[] sprites = new Sprite[6];
+    public Sprite[] sprites = new Sprite[3];
 
     // Start is called before the first frame update
     void Start()
@@ -14,7 +14,8 @@ public class Prize : MonoBehaviour
 
     private void OnEnable()
     {
-        type = Type.star;// (Type)Random.Range(0, 6);
+        //type = Type.star;// (Type)Random.Range(0, 6);
+        type = (Type)Random.Range(0, 4); ;// 
         gameObject.GetComponent<SpriteRenderer>().sprite = sprites[(int)type];
         gameObject.transform.position = new Vector2(Random.Range(-13, 13) * 0.25f, Random.Range(-11, 11) * 0.25f);
 
@@ -24,19 +25,7 @@ public class Prize : MonoBehaviour
         if (collision.tag =="Player")
         {
             OurTank myTank = collision.GetComponent<OurTank>();
-            if (type == Type.bomb)
-            {
-                EnemyTank[] tanks = FindObjectsOfType<EnemyTank>();
-                foreach (EnemyTank tank in tanks)
-                {
-                    if (!tank.m_Dead)
-                    {
-                        tank.Health = 0;
-                        tank.Die(myTank.m_PlayerNumber);
-                    }
-                }
-            }
-            else if(type == Type.life)
+            if(type == Type.life)
             {
                 GameManager.GetInstance().playerLife++;
             }
@@ -48,14 +37,27 @@ public class Prize : MonoBehaviour
             {
                 myTank.level++;
             }
-            else if (type == Type.timer)
+
+
+            ObjectPool.GetInstance().RecycleObj(gameObject);
+        }
+        else if (collision.name == "EnemyTank" )
+        {
+            EnemyTank enemy = collision.GetComponent<EnemyTank>();
+            if (type == Type.life)
             {
-                BattleManager.GetInstance().bulletTime = 8f;
+                GameManager.GetInstance().playerLife++;
             }
-            else if (type == Type.shovel)
+            else if (type == Type.helmet)
             {
-                BattleManager.GetInstance().GetComponent<MapLoader>().OnPrizeShovel();
+                enemy.OnInvinciblePrize();
             }
+            else if (type == Type.star)
+            {
+                enemy.Type += 1 ;
+                enemy.UpdateType(enemy.Type);
+            }
+
             ObjectPool.GetInstance().RecycleObj(gameObject);
         }
     }
